@@ -19,7 +19,8 @@ function isLLMOverloaded(error) {
     msg.includes("overloaded") ||
     msg.includes("unavailable") ||
     msg.includes("503") ||
-    msg.includes("quota")
+    msg.includes("quota") ||
+    msg.includes("429")
   );
 }
 
@@ -134,6 +135,10 @@ export async function generateRecommendation(user, message) {
     return response.text.trim();
   } catch (error) {
     console.error("LLM Error (Recommendation):", error);
+    if (isLLMOverloaded(error)) {
+      return "⚠️ The health agent is currently unavailable due to high demand.\nPlease try again in a few minutes.";
+    }
+
     return "I can suggest general lifestyle tips aligned with your goals 😊";
   }
 }
