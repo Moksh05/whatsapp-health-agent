@@ -1,36 +1,71 @@
+import { log } from "./utils.js";
 
 export function getSleepSummary(user, dailyData) {
+  log("Sleep summary calculation started");
+
   const actual = dailyData.sleep.durationHours;
   const target = user.goals.sleepHours;
   const status = actual >= target ? "met" : "below";
-  return { actual: actual + " hours", target: target + " hours", status };
+
+  log(`Sleep actual: ${actual}h, target: ${target}h, status: ${status}`);
+
+  return {
+    actual: actual + " hours",
+    target: target + " hours",
+    status
+  };
 }
 
 export function getStepsSummary(user, dailyData) {
+  log("Steps summary calculation started");
+
   const actual = dailyData.activity.steps;
   const target = user.goals.stepsPerDay;
   const status = actual >= target ? "met" : "below";
-  return { actual: actual + " steps", target: target + " steps", status };
+
+  log(`Steps actual: ${actual}, target: ${target}, status: ${status}`);
+
+  return {
+    actual: actual + " steps",
+    target: target + " steps",
+    status
+  };
 }
 
 export function getHeartRateSummary(dailyData) {
-    // Heart rate is informational only, no target comparison in requirements, but we can just show avg
-    const actual = dailyData.heart.avgHeartRate;
-    return { actual: actual + " bpm", target: "N/A", status: "informational" };
+  log("Heart rate summary calculation started");
+
+  const actual = dailyData.heart.avgHeartRate;
+
+  log(`Heart rate actual: ${actual} bpm`);
+
+  return {
+    actual: actual + " bpm",
+    target: "N/A",
+    status: "informational"
+  };
 }
 
 export function getNutritionSummary(user, dailyData) {
-    const actual = dailyData.nutrition;
-    const target = user.goals.diet;
-    
-    // Simple comparison based on calories for status, or just return data
-    // Requirement says "Compare nutrition intake vs diet goals"
-    // Let's create a summary string or object
-    const status = actual.caloriesConsumed <= target.calories ? "met" : "exceeded"; // simplifying logic
-    
-    return {
-        actual: `Calories: ${actual.caloriesConsumed}, Protein: ${actual.protein}g`,
-        target: `Calories: ${target.calories}, Protein: ${target.protein}g`,
-        status
-    };
+  log("Nutrition summary calculation started");
+
+  const actual = dailyData.nutrition;
+  const target = user.goals.diet;
+
+  const status =
+    actual.caloriesConsumed <= target.calories ? "met" : "exceeded";
+
+  log(
+    `Nutrition actual: calories=${actual.caloriesConsumed}, protein=${actual.protein}g`
+  );
+  log(
+    `Nutrition target: calories=${target.calories}, protein=${target.protein}g`
+  );
+  log(`Nutrition status: ${status}`);
+
+  return {
+    actual: `Calories: ${actual.caloriesConsumed}, Protein: ${actual.protein}g`,
+    target: `Calories: ${target.calories}, Protein: ${target.protein}g`,
+    status
+  };
 }
