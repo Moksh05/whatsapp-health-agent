@@ -12,6 +12,17 @@ console.log(process.env.GEMINI_API_KEY);
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY });
 
+
+function isLLMOverloaded(error) {
+  const msg = error?.message?.toLowerCase() || "";
+  return (
+    msg.includes("overloaded") ||
+    msg.includes("unavailable") ||
+    msg.includes("503") ||
+    msg.includes("quota")
+  );
+}
+
 // ---- INTENT CLASSIFICATION ----
 export async function classifyIntent(message) {
   try {
@@ -33,22 +44,52 @@ export async function classifyIntent(message) {
       "fallback"
     ];
 
+    return {
+      intent: validIntents.includes(text) ? text : "fallback",
+      llmUnavailable: false
+    };
 
-    return validIntents.includes(text) ? text : "fallback";
   } catch (error) {
-    console.error("LLM Error (Intent):", error);
-    return "fallback"; // fail-safe
+    console.error("LLM Error (Intent):", error?.message || error);
+
+    if (isLLMOverloaded(error)) {
+      return {
+        intent: "fallback",
+        llmUnavailable: true
+      };
+    }
+
+    return {
+      intent: "fallback",
+      llmUnavailable: false
+    };
   }
 }
+
 
 // ---- EXPLANATION GENERATION ----
 export async function generateExplanation(userName, summaryData) {
   try {
-    const summaryString = `
-Actual: ${summaryData.actual}
-Target: ${summaryData.target}
-Status: ${summaryData.status}
-    `.trim();
+    const summaryLines = [];
+
+    if (summaryData.actual) {
+      summaryLines.push(`Actual: ${summaryData.actual}`);
+    }
+
+    if (summaryData.target) {
+      summaryLines.push(`Target: ${summaryData.target}`);
+    }
+
+    if (summaryData.age) {
+      summaryLines.push(`User age: ${summaryData.age}`);
+    }
+
+    if (summaryData.status) {
+      summaryLines.push(`Status: ${summaryData.status}`);
+    }
+
+    const summaryString = summaryLines.join("\n");
+
 
     let prompt = EXPLANATION_USER_PROMPT
       .replace("{{name}}", userName)
@@ -61,8 +102,12 @@ Status: ${summaryData.status}
 
     return response.text.trim();
   } catch (error) {
-    console.error("LLM Error (Explanation):", error);
-    return `Here is your summary: ${JSON.stringify(summaryData)}`;
+    console.error("LLM Error (Explanation):", error?.message || error);
+    if (isLLMOverloaded(error)) {
+      return "⚠️ The health agent is currently overloaded and temporarily unavailable.\nPlease try again in a few minutes.";
+    }
+
+    return `Here is your summary:\nActual: ${summaryData.actual}\nTarget: ${summaryData.target}`;
   }
 }
 

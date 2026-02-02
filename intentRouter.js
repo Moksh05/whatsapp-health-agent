@@ -15,7 +15,11 @@ export async function handleMessage(fromNumber, messageBody) {
   }
 
   // 2. Classify Intent
-  const intent = await classifyIntent(messageBody);
+  const { intent, llmUnavailable } = await classifyIntent(messageBody);
+
+    if (llmUnavailable) {
+    return responseText="⚠️ The health agent is currently overloaded and temporarily unavailable.\nPlease try again in a few minutes.";
+    }
 
   // 3. Backend Logic & 4. Explanation
   let responseText = "";
