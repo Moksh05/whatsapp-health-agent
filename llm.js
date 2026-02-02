@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { GoogleGenAI } from "@google/genai";
 import {
   INTENT_SYSTEM_PROMPT,
@@ -7,8 +10,7 @@ import {
 console.log(process.env.GEMINI_API_KEY);
 // Gemini client (API key is auto-read from GEMINI_API_KEY)
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || 'AIzaSyCtdXCHz1i6pAQ9WIiLN3mZqs38GtCoXTk'
-});
+  apiKey: process.env.GEMINI_API_KEY });
 
 // ---- INTENT CLASSIFICATION ----
 export async function classifyIntent(message) {
